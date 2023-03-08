@@ -4,12 +4,34 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
 	"github.com/gammazero/fsutil"
 	"github.com/stretchr/testify/require"
 )
+
+func TestDirEmpty(t *testing.T) {
+	_, err := fsutil.DirEmpty("")
+	require.Error(t, err)
+
+	tmpDir := t.TempDir()
+	_, err = fsutil.DirEmpty(filepath.Join(tmpDir, "nosuchdir"))
+	require.Error(t, err)
+
+	empty, err := fsutil.DirEmpty(tmpDir)
+	require.NoError(t, err)
+	require.True(t, empty)
+
+	file, err := os.CreateTemp(tmpDir, "")
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+
+	empty, err = fsutil.DirEmpty(tmpDir)
+	require.NoError(t, err)
+	require.False(t, empty)
+}
 
 func TestDirExists(t *testing.T) {
 	_, err := fsutil.DirExists("")
@@ -31,6 +53,11 @@ func TestDirExists(t *testing.T) {
 
 	_, err = fsutil.DirExists(file.Name())
 	require.ErrorContains(t, err, "not a directory")
+
+	// If running on Windows, skip write-only directory tests.
+	if runtime.GOOS == "windows" {
+		t.SkipNow()
+	}
 
 	require.NoError(t, os.Chmod(tmpDir, 0222))
 	_, err = fsutil.DirExists(notDir)
@@ -56,6 +83,11 @@ func TestDirWritable(t *testing.T) {
 
 	err = fsutil.DirWritable(wrDir)
 	require.NoError(t, err)
+
+	// If running on Windows, skip read-only directory tests.
+	if runtime.GOOS == "windows" {
+		t.SkipNow()
+	}
 
 	roDir := filepath.Join(tmpDir, "readonly")
 	if err = os.Mkdir(roDir, 0500); err != nil {

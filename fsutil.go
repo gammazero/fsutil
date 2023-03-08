@@ -3,10 +3,27 @@ package fsutil
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"time"
 )
+
+// DirEmpty check if a directory is empty.
+func DirEmpty(dir string) (bool, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	// Not empty or error.
+	return false, err
+}
 
 // DirExists checks if a directory exists.
 func DirExists(dir string) (bool, error) {
