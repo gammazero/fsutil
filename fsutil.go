@@ -51,7 +51,8 @@ func DirWritable(dir string) error {
 		return errors.New("directory not specified")
 	}
 
-	if _, err := os.Stat(dir); err != nil {
+	fi, err := os.Stat(dir)
+	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			// Directory does not exist, so create it.
 			err = os.Mkdir(dir, 0775)
@@ -63,6 +64,9 @@ func DirWritable(dir string) error {
 			err = fs.ErrPermission
 		}
 		return fmt.Errorf("directory not writable: %s: %w", dir, err)
+	}
+	if !fi.IsDir() {
+		return fmt.Errorf("not a directory: %s", dir)
 	}
 
 	// Directory exists, check that a file can be written.
