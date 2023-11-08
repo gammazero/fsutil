@@ -84,6 +84,13 @@ func TestDirWritable(t *testing.T) {
 	err = fsutil.DirWritable(wrDir)
 	require.NoError(t, err)
 
+	// Check that DirWritable returns error for non-directory.
+	file, err := os.CreateTemp(tmpDir, "")
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+	err = fsutil.DirWritable(file.Name())
+	require.ErrorContains(t, err, "not a directory")
+
 	// If running on Windows, skip read-only directory tests.
 	if runtime.GOOS == "windows" {
 		t.SkipNow()
