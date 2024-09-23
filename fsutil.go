@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -49,6 +50,12 @@ func DirExists(dir string) (bool, error) {
 func DirWritable(dir string) error {
 	if dir == "" {
 		return errors.New("directory not specified")
+	}
+
+	var err error
+	dir, err = Expand(dir)
+	if err != nil {
+		return err
 	}
 
 	fi, err := os.Stat(dir)
@@ -98,4 +105,28 @@ func FileChanged(filePath string, modTime time.Time) (time.Time, bool, error) {
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	return !errors.Is(err, fs.ErrNotExist)
+}
+
+// Expand expands the path to include the home directory if the path is
+// prefixed with `~`. If it isn't prefixed with `~`, the path is returned
+// as-is.
+func Expand(path string) (string, error) {
+	if path == "" {
+		return path, nil
+	}
+
+	if path[0] != '~' {
+		return path, nil
+	}
+
+	if len(path) > 1 && path[1] != '/' && path[1] != '\\' {
+		return "", errors.New("cannot expand user-specific home dir")
+	}
+
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, path[1:]), nil
 }
