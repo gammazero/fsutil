@@ -70,9 +70,6 @@ func TestDirWritable(t *testing.T) {
 	err := fsutil.DirWritable("")
 	require.Error(t, err)
 
-	err = fsutil.DirWritable("~nosuchuser/tmp")
-	require.Error(t, err)
-
 	tmpDir := t.TempDir()
 
 	wrDir := filepath.Join(tmpDir, "readwrite")

@@ -52,12 +52,6 @@ func DirWritable(dir string) error {
 		return errors.New("directory not specified")
 	}
 
-	var err error
-	dir, err = Expand(dir)
-	if err != nil {
-		return err
-	}
-
 	fi, err := os.Stat(dir)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
