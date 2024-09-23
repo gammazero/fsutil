@@ -1,10 +1,10 @@
 module github.com/gammazero/fsutil
 
-go 1.20
+go 1.22
 
 require (
-	github.com/stretchr/testify v1.8.1
-	golang.org/x/sys v0.14.0
+	github.com/stretchr/testify v1.9.0
+	golang.org/x/sys v0.25.0
 )
 
 require (
