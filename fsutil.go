@@ -101,10 +101,10 @@ func FileExists(filename string) bool {
 	return !errors.Is(err, fs.ErrNotExist)
 }
 
-// Expand expands the path to include the home directory if the path is
+// ExpandHome expands the path to include the home directory if the path is
 // prefixed with `~`. If it isn't prefixed with `~`, the path is returned
 // as-is.
-func Expand(path string) (string, error) {
+func ExpandHome(path string) (string, error) {
 	if path == "" {
 		return path, nil
 	}
