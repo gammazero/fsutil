@@ -82,25 +82,6 @@ func DirWritable(dir string) error {
 	return os.Remove(file.Name())
 }
 
-// FileChanged returns the modification time of a file and true if different
-// from the given time.
-func FileChanged(filePath string, modTime time.Time) (time.Time, bool, error) {
-	fi, err := os.Stat(filePath)
-	if err != nil {
-		return modTime, false, fmt.Errorf("cannot stat file %s: %w", filePath, err)
-	}
-	if fi.ModTime() != modTime {
-		return fi.ModTime(), true, nil
-	}
-	return modTime, false, nil
-}
-
-// FileExists returns true if the file exists.
-func FileExists(filename string) bool {
-	_, err := os.Stat(filename)
-	return !errors.Is(err, fs.ErrNotExist)
-}
-
 // ExpandHome expands the path to include the home directory if the path is
 // prefixed with `~`. If it isn't prefixed with `~`, the path is returned
 // as-is.
@@ -123,4 +104,23 @@ func ExpandHome(path string) (string, error) {
 	}
 
 	return filepath.Join(dir, path[1:]), nil
+}
+
+// FileChanged returns the modification time of a file and true if different
+// from the given time.
+func FileChanged(filePath string, modTime time.Time) (time.Time, bool, error) {
+	fi, err := os.Stat(filePath)
+	if err != nil {
+		return modTime, false, fmt.Errorf("cannot stat file %s: %w", filePath, err)
+	}
+	if fi.ModTime() != modTime {
+		return fi.ModTime(), true, nil
+	}
+	return modTime, false, nil
+}
+
+// FileExists returns true if the file exists.
+func FileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return !errors.Is(err, fs.ErrNotExist)
 }
