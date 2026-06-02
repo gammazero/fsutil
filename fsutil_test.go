@@ -162,7 +162,7 @@ func TestFileExists(t *testing.T) {
 
 	file, err := os.Create(fileName)
 	requireNoError(t, err)
-	file.Close()
+	requireNoError(t, file.Close())
 
 	if !fsutil.FileExists(fileName) {
 		t.Fatal("expected file to exist")
@@ -190,10 +190,8 @@ func TestExpandHome(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		homeEnv = "USERPROFILE"
 	}
-	origHome := os.Getenv(homeEnv)
-	defer os.Setenv(homeEnv, origHome)
 	homeDir := filepath.Join(t.TempDir(), "testhome")
-	os.Setenv(homeEnv, homeDir)
+	t.Setenv(homeEnv, homeDir)
 
 	const subDir = "mytmp"
 	origDir = filepath.Join("~", subDir)
@@ -204,7 +202,7 @@ func TestExpandHome(t *testing.T) {
 		t.Fatalf("expected dir to be %q, got %q", expect, dir)
 	}
 
-	os.Unsetenv(homeEnv)
+	requireNoError(t, os.Unsetenv(homeEnv))
 	_, err = fsutil.ExpandHome(origDir)
 	requireError(t, err)
 }

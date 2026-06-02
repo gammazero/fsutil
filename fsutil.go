@@ -16,7 +16,7 @@ func DirEmpty(dir string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 
 	_, err = f.Readdirnames(1)
 	if err == io.EOF {
@@ -78,7 +78,7 @@ func DirWritable(dir string) error {
 		}
 		return fmt.Errorf("directory not writable: %s: %w", dir, err)
 	}
-	file.Close()
+	_ = file.Close()
 	return os.Remove(file.Name())
 }
 
