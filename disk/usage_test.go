@@ -4,26 +4,37 @@ import (
 	"testing"
 
 	"github.com/gammazero/fsutil/disk"
-	"github.com/stretchr/testify/require"
 )
 
 func TestUsage(t *testing.T) {
 	tempDir := t.TempDir()
 	us, err := disk.Usage(tempDir)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	t.Log("Path:", us.Path)
-	require.Equal(t, tempDir, us.Path)
+	if us.Path != tempDir {
+		t.Fatal("incorrect path:", us.Path)
+	}
 
 	t.Log("Total:", us.Total)
-	require.NotZero(t, us.Total)
+	if us.Total == 0 {
+		t.Fatal("Total should not be 0")
+	}
 
 	t.Log("Free:", us.Free)
-	require.NotZero(t, us.Free)
+	if us.Free == 0 {
+		t.Fatal("Free should not be 0")
+	}
 
 	t.Log("Used:", us.Used)
-	require.NotZero(t, us.Used)
+	if us.Used == 0 {
+		t.Fatal("Used should not be 0")
+	}
 
 	t.Log("Percent:", us.Percent)
-	require.Greater(t, us.Percent, 0.0)
+	if us.Percent <= 0.0 {
+		t.Fatal("Percent must be greater than 0.0")
+	}
 }
