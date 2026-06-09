@@ -16,7 +16,7 @@ type File struct {
 // reading and writing, and returns the resulting file. The temporary file is
 // renamed to the given path when [Close] is called.
 func Create(path string, mode os.FileMode) (*File, error) {
-	f, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path))
+	f, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+"-")
 	if err != nil {
 		return nil, err
 	}
