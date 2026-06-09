@@ -17,7 +17,11 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Discard()
+	defer func() {
+		if err := f.Discard(); err != nil && !errors.Is(err, os.ErrClosed) {
+			t.Fatal(err)
+		}
+	}()
 
 	if f.Name() != path {
 		t.Fatal("expected final name, got:", f.Name())
@@ -120,7 +124,9 @@ func TestFileExists(t *testing.T) {
 	if err = file.Close(); err != nil {
 		panic(err)
 	}
-	defer os.Remove(file.Name())
+	t.Cleanup(func() {
+		_ = os.Remove(file.Name())
+	})
 
 	mode := os.FileMode(0644)
 	f, err := atomicfile.Create(file.Name(), mode)
@@ -130,7 +136,9 @@ func TestFileExists(t *testing.T) {
 	if err = f.Close(); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(f.Name())
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
 
 	fi, err := os.Stat(f.Name())
 	if err != nil {
@@ -160,7 +168,9 @@ func TestDirExistsAtFilename(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	defer os.Remove(name)
+	t.Cleanup(func() {
+		_ = os.Remove(name)
+	})
 
 	f, err := atomicfile.Create(name, 0600)
 	if err != nil {
