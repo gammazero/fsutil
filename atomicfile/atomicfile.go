@@ -35,7 +35,8 @@ func Create(path string, mode os.FileMode) (*File, error) {
 func (f *File) Close() error {
 	err := f.File.Close()
 	if err != nil {
-		if errors.Is(err, os.ErrClosed) {
+		// Remove temp file on failed close, unless already closed.
+		if !errors.Is(err, os.ErrClosed) {
 			_ = os.Remove(f.TempName())
 		}
 		return err
