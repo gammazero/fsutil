@@ -33,22 +33,15 @@ func Create(path string, mode os.FileMode) (*File, error) {
 
 // Close closes the file and renames it to the final name.
 func (f *File) Close() error {
-	err := f.File.Close()
-	if err != nil {
-		// Remove temp file on failed close, unless already closed.
-		if !errors.Is(err, os.ErrClosed) {
-			_ = os.Remove(f.TempName())
-		}
+	if err := f.closeTemp(); err != nil {
 		return err
 	}
-
 	return os.Rename(f.TempName(), f.Name())
 }
 
 // Discard closes the temproary file and removes it without renaming it.
 func (f *File) Discard() error {
-	if err := f.File.Close(); err != nil {
-		_ = os.Remove(f.TempName())
+	if err := f.closeTemp(); err != nil {
 		return err
 	}
 	return os.Remove(f.TempName())
@@ -62,4 +55,15 @@ func (f *File) Name() string {
 // TempName returns the temporary name of the file.
 func (f *File) TempName() string {
 	return f.File.Name()
+}
+
+func (f *File) closeTemp() error {
+	if err := f.File.Close(); err != nil {
+		// Remove temp file on failed close, unless already closed.
+		if !errors.Is(err, os.ErrClosed) {
+			_ = os.Remove(f.TempName())
+		}
+		return err
+	}
+	return nil
 }
