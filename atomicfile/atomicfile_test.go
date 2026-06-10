@@ -239,8 +239,6 @@ func TestRemoveTempFail(t *testing.T) {
 	}
 
 	// Should be multiple errors: failure to rename, failure to remove temp.
-	t.Log("Err:", err)
-
 	errStr := err.Error()
 	if !strings.Contains(errStr, "rename") {
 		t.Fatal("missing expected rename error")
