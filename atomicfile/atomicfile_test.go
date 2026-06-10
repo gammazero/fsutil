@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/gammazero/fsutil"
@@ -180,11 +181,77 @@ func TestDirExistsAtFilename(t *testing.T) {
 	if err == nil || !errors.Is(err, os.ErrExist) {
 		t.Fatalf("expected error %q, got: %s", os.ErrExist, err)
 	}
-	fi, err := os.Stat(name)
+	if fsutil.FileExists(f.TempName()) {
+		t.Fatal("expected temp file to be removed, but it still exists")
+	}
+	exists, err := fsutil.DirExists(name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !fi.IsDir() {
-		t.Fatal("file should not have replaced directory")
+	if !exists {
+		t.Fatal("directory should still exis")
+	}
+}
+
+func TestRemoveTempFail(t *testing.T) {
+	dir := t.TempDir()
+	name := filepath.Join(dir, "testblocked")
+	err := os.Mkdir(name, 0700)
+	if err != nil {
+		panic(err)
+	}
+	t.Cleanup(func() {
+		_ = os.Remove(name)
+	})
+
+	f, err := atomicfile.Create(name, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Cause removal of the temp file to fail.
+	err = os.Remove(f.TempName())
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Mkdir(f.TempName(), 0700)
+	if err != nil {
+		panic(err)
+	}
+	t.Cleanup(func() {
+		_ = os.Remove(name)
+	})
+	// Repeat the same test using a non-empty directory.
+	file, err := os.CreateTemp(f.TempName(), "somefile")
+	if err != nil {
+		panic("cannot create temp file")
+	}
+	if err = file.Close(); err != nil {
+		panic(err)
+	}
+	t.Cleanup(func() {
+		_ = os.Remove(file.Name())
+	})
+
+	err = f.Close()
+	if err == nil || !errors.Is(err, os.ErrExist) {
+		t.Fatalf("expected error %q, got: %s", os.ErrExist, err)
+	}
+
+	// Should be multiple errors: failure to rename, failure to remove temp.
+	errStr := err.Error()
+	if !strings.Contains(errStr, "rename") {
+		t.Fatal("missing expected rename error")
+	}
+	if !strings.Contains(errStr, "remove") {
+		t.Fatal("missing expected remove error")
+	}
+
+	exists, err := fsutil.DirExists(f.TempName())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !exists {
+		t.Fatal("directory should still exis")
 	}
 }
