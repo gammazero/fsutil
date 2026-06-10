@@ -20,7 +20,7 @@ func Create(path string, mode os.FileMode) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = os.Chmod(f.Name(), mode); err != nil {
+	if err = f.Chmod(mode); err != nil {
 		_ = f.Close()
 		_ = os.Remove(f.Name())
 		return nil, err
@@ -31,39 +31,47 @@ func Create(path string, mode os.FileMode) (*File, error) {
 	}, nil
 }
 
-// Close closes the file and renames it to the final name.
+// Close closes the file and renames it to the final name. Close does not call
+// file.Sync, and it is up to the user to do so before calling Close. If
+// renaming the file fails, the temporary file is removed.
 func (f *File) Close() error {
-	if err := f.closeTemp(); err != nil {
-		return err
-	}
-	return os.Rename(f.TempName(), f.Name())
-}
-
-// Discard closes the temproary file and removes it without renaming it.
-func (f *File) Discard() error {
-	if err := f.closeTemp(); err != nil {
-		return err
-	}
-	return os.Remove(f.TempName())
-}
-
-// Name returns the final name of the file.
-func (f *File) Name() string {
-	return f.path
-}
-
-// TempName returns the temporary name of the file.
-func (f *File) TempName() string {
-	return f.File.Name()
-}
-
-func (f *File) closeTemp() error {
-	if err := f.File.Close(); err != nil {
+	err := f.File.Close()
+	if err != nil {
 		// Remove temp file on failed close, unless already closed.
 		if !errors.Is(err, os.ErrClosed) {
 			_ = os.Remove(f.TempName())
 		}
 		return err
 	}
+
+	if err = os.Rename(f.TempName(), f.Name()); err != nil {
+		// Remove temp file on failed Rename.
+		if rmErr := os.Remove(f.TempName()); rmErr != nil {
+			return errors.Join(err, rmErr)
+		}
+		return err
+	}
 	return nil
+}
+
+// Discard closes the temproary file and removes it without renaming it.
+func (f *File) Discard() error {
+	if err := f.File.Close(); err != nil {
+		_ = os.Remove(f.TempName())
+		return err
+	}
+	return os.Remove(f.TempName())
+}
+
+// Name returns the final name of the file. This file will not exist until
+// after a successful [Close]. Call [TempName] to get the name of the temporary
+// version of this file.
+func (f *File) Name() string {
+	return f.path
+}
+
+// TempName returns the temporary name of the file. Calling [Close] or
+// [Discard] removes this file.
+func (f *File) TempName() string {
+	return f.File.Name()
 }

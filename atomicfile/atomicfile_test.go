@@ -180,6 +180,9 @@ func TestDirExistsAtFilename(t *testing.T) {
 	if err == nil || !errors.Is(err, os.ErrExist) {
 		t.Fatalf("expected error %q, got: %s", os.ErrExist, err)
 	}
+	if fsutil.FileExists(f.TempName()) {
+		t.Fatal("expected temp file to be removed, but it still exists")
+	}
 	fi, err := os.Stat(name)
 	if err != nil {
 		t.Fatal(err)
