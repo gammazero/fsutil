@@ -1,3 +1,4 @@
+// Package fsutil provides common file and directory checks.
 package fsutil
 
 import (
