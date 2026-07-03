@@ -228,3 +228,39 @@ func requireErrorContains(t *testing.T, err error, s string) {
 		t.Fatalf("error does not contain %q, error is %q", s, err)
 	}
 }
+
+func TestIsSubpath(t *testing.T) {
+	tests := []struct {
+		name   string
+		parent string
+		child  string
+		want   bool
+	}{
+		{"direct child", "/x/a", "/x/a/b", true},
+		{"nested child", "/x/a", "/x/a/b/c/d", true},
+		{"equal path is inside", "/x/a/b", "/x/a/b", true},
+		{"equal path training slash parent", "/x/a/b/", "/x/a/b", true},
+		{"equal path training slash child", "/x/a/b", "/x/a/b/", true},
+		{"parent is not inside", "/x/a/b", "/x/a", false},
+		{"sibling is not inside", "/x/a/b", "/x/a/c", false},
+		{"prefix but not subdir", "/x/ab", "/x/abc", false},
+		{"escapes with dotdot", "/x/a", "/x/a/b/../../..", false},
+		{"no escape with dotdot", "/x/a", "/x/a/b/c/../..", true},
+		{"trailing slash on child", "/x/a", "/x/a/b/", true},
+		{"relative child", "a", "a/b", true},
+		{"relative parent", "a/b", "a", false},
+		{"relative equal", "a", "a", true},
+		{"relative child with dotslash", "./a", "./a/b", true},
+		{"relative parent of cwd", "..", ".", true},
+		{"child within root", "/", "/x/a", true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			parent := filepath.FromSlash(tc.parent)
+			child := filepath.FromSlash(tc.child)
+			if got := fsutil.IsSubpath(parent, child); got != tc.want {
+				t.Errorf("IsSubpath(%q, %q) = %v, want %v", parent, child, got, tc.want)
+			}
+		})
+	}
+}

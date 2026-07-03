@@ -11,7 +11,7 @@ Filesystem utility for common file and directory checks.
 
 ### [fsutil](https://pkg.go.dev/github.com/gammazero/fsutil)
 
-Common file and directory checks: `DirEmpty`, `DirExists`, `DirWritable`, `ExpandHome`, `FileChanged`, `FileExists`.
+Common file and directory checks: `DirEmpty`, `DirExists`, `DirWritable`, `ExpandHome`, `FileChanged`, `FileExists`, `IsSubpath`.
 
 ### [fsutil/atomicfile](https://pkg.go.dev/github.com/gammazero/fsutil/atomicfile)
 

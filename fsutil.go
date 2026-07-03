@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -124,4 +125,25 @@ func FileChanged(filePath string, modTime time.Time) (time.Time, bool, error) {
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	return !errors.Is(err, fs.ErrNotExist)
+}
+
+// IsSubpath reports whether child path is located within or is equal to the
+// parent path. Relative arguments are resolved to absolute paths. Symbolic
+// links are not followed and the filesystem is not otherwise consulted.
+// Returns false when parent does not contain child or when the two paths
+// cannot be related.
+func IsSubpath(parent, child string) bool {
+	absParent, err := filepath.Abs(parent)
+	if err != nil {
+		return false
+	}
+	absChild, err := filepath.Abs(child)
+	if err != nil {
+		return false
+	}
+
+	// Check if the child path starts with the parent path.
+	// Ensure there is a separator after the parent to prevent partial matches
+	sep := string(filepath.Separator)
+	return absChild == absParent || strings.HasPrefix(absChild, strings.TrimSuffix(absParent, sep)+sep)
 }
