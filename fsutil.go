@@ -144,5 +144,6 @@ func IsSubpath(parent, child string) bool {
 
 	// Check if the child path starts with the parent path.
 	// Ensure there is a separator after the parent to prevent partial matches
-	return absChild == absParent || strings.HasPrefix(absChild, strings.TrimSuffix(absParent, "/")+string(filepath.Separator))
+	sep := string(filepath.Separator)
+	return absChild == absParent || strings.HasPrefix(absChild, strings.TrimSuffix(absParent, sep)+sep)
 }
