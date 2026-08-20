@@ -12,9 +12,10 @@ type File struct {
 	path string
 }
 
-// Create creates a new temporary file at the given path, opens the file for
-// reading and writing, and returns the resulting file. The temporary file is
-// renamed to the given path when [Close] is called.
+// Create creates a new temporary file in the same directory as path, with a
+// generated name, opens the file for reading and writing with the given mode,
+// and returns the resulting file. The temporary file is renamed to the given
+// path when [Close] is called.
 func Create(path string, mode os.FileMode) (*File, error) {
 	f, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+"-")
 	if err != nil {
@@ -51,7 +52,7 @@ func (f *File) Close() error {
 	return nil
 }
 
-// Discard closes the temproary file and removes it without renaming it.
+// Discard closes the temporary file and removes it without renaming it.
 func (f *File) Discard() error {
 	if err := f.closeTemp(); err != nil {
 		return err
@@ -66,8 +67,9 @@ func (f *File) Name() string {
 	return f.path
 }
 
-// TempName returns the temporary name of the file. Calling [Close] or
-// [Discard] removes this file.
+// TempName returns the temporary name of the file. Calling [Close] renames
+// this file to its final name, and [Discard] removes it; either way, no file
+// exists at this name afterward.
 func (f *File) TempName() string {
 	return f.File.Name()
 }

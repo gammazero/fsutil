@@ -16,9 +16,9 @@ func usage(path string) (*UsageStats, error) {
 	}
 	blockSize := stat.F_bsize
 
-	// Total blocks only available to root.
+	// Total data blocks in the filesystem.
 	total := stat.F_blocks
-	// Remaining free blocks usable by root.
+	// Remaining free blocks, including those reserved for root.
 	availToRoot := stat.F_bfree
 	// Remaining free blocks usable by user.
 	availToUser := stat.F_bavail

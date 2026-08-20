@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// DirEmpty check if a directory is empty.
+// DirEmpty reports whether a directory is empty.
 func DirEmpty(dir string) (bool, error) {
 	f, err := os.Open(dir)
 	if err != nil {
@@ -28,7 +28,8 @@ func DirEmpty(dir string) (bool, error) {
 	return false, err
 }
 
-// DirExists checks if a directory exists.
+// DirExists reports whether the directory exists. Returns false and an error
+// if the path exists but is not a directory.
 func DirExists(dir string) (bool, error) {
 	if dir == "" {
 		return false, errors.New("directory not specified")
@@ -47,8 +48,9 @@ func DirExists(dir string) (bool, error) {
 	return true, nil
 }
 
-// DirWritable checks if a directory is writable. If the directory does
-// not exist it is created with writable permission.
+// DirWritable checks if a directory is writable, verifying this by creating
+// and removing a temporary file in the directory. If the directory does not
+// exist it is created with permission 0775; its parent must already exist.
 func DirWritable(dir string) error {
 	if dir == "" {
 		return errors.New("directory not specified")
@@ -86,7 +88,8 @@ func DirWritable(dir string) error {
 
 // ExpandHome expands the path to include the home directory if the path is
 // prefixed with `~`. If it isn't prefixed with `~`, the path is returned
-// as-is.
+// as-is. Only a bare `~` prefix is supported; a `~user` prefix returns an
+// error.
 func ExpandHome(path string) (string, error) {
 	if path == "" {
 		return path, nil
@@ -109,7 +112,8 @@ func ExpandHome(path string) (string, error) {
 }
 
 // FileChanged returns the modification time of a file and true if different
-// from the given time.
+// from the given time. If the file cannot be stat'd, the given time is
+// returned along with the error.
 func FileChanged(filePath string, modTime time.Time) (time.Time, bool, error) {
 	fi, err := os.Stat(filePath)
 	if err != nil {
@@ -121,7 +125,9 @@ func FileChanged(filePath string, modTime time.Time) (time.Time, bool, error) {
 	return modTime, false, nil
 }
 
-// FileExists returns true if the file exists.
+// FileExists returns true if the file exists. A stat error other than
+// fs.ErrNotExist, such as a permission error, is treated as the file
+// existing.
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	return !errors.Is(err, fs.ErrNotExist)
