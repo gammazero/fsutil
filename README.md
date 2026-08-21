@@ -21,7 +21,7 @@ Notes:
 
 ### [fsutil/atomicfile](https://pkg.go.dev/github.com/gammazero/fsutil/atomicfile)
 
-Creates a temporary file that is renamed to the specified path when `Close` is called. This prevents a partially written file from being visible when writes are in progress or when a failure occurs during writing. The temporary file is created in the same directory as the target path so that the rename stays on one filesystem. `Discard` removes the temporary file without renaming it. `Close` does not call `Sync`; callers wanting durability must call `Sync` before `Close`.
+Creates a temporary file that is renamed to the specified path when `Close` is called. This prevents a partially written file from being visible when writes are in progress or when a failure occurs during writing. The temporary file is created in the same directory as the target path so that the rename stays on one filesystem. `Discard` removes the temporary file without renaming it. `Close` does not call `Sync`; callers wanting durability use `CloseSync`, which syncs the file, renames it, and syncs the containing directory so that the rename itself survives a crash. `WriteFile` atomically and durably writes a byte slice to a file in a single call. `CopyFile` copies a regular file, preserving its permission mode; the destination is never observed partially written.
 
 ### [fsutil/disk](https://pkg.go.dev/github.com/gammazero/fsutil/disk)
 
